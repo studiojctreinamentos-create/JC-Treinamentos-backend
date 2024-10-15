@@ -1,0 +1,29 @@
+# Dependências
+node_modules/
+
+# Arquivos de ambiente
+.env
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Outras configurações de editor
+.DS_Store
+.idea/
+.vscode/# Dependências
+node_modules/
+
+# Arquivos de ambiente
+.env
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Outras configurações de editor
+.DS_Store
+.idea/
+.vscode/

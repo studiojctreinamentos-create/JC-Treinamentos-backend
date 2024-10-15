@@ -10,4 +10,8 @@ router.get('/trainee', (req, res) => {
     res.sendFile(path.join(__dirname, '../public/trainee.html'))
 } )
 
+router.get('/check', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/check.html'))
+} )
+
 module.exports = router

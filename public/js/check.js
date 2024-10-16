@@ -70,7 +70,6 @@ function populateTraineeTable(trainees, paymentPlans) {
 // Cria uma linha para a tabela de trainees
 function createTraineeRow(trainee, planName) {
     const row = document.createElement('tr');
-    console.log(JSON.stringify(trainee))
     row.innerHTML = `
         <td>${trainee.name}</td>
         <td>${formatDate(trainee.birthDate)}</td>
@@ -83,7 +82,7 @@ function createTraineeRow(trainee, planName) {
         <td>${trainee.paymentDay || 'N/A'}</td>
         <td>
             <button onclick='populateUpdateForm(${JSON.stringify(trainee)})'>Editar</button>
-            <button onclick='deleteTrainee('${trainee.id}')'>Deletar</button>
+            <button onclick='deleteTrainee(${trainee.id})'>Deletar</button>
         </td>
     `;
     return row;
@@ -105,10 +104,11 @@ function createPaymentPlanRow(plan) {
     const row = document.createElement('tr');
     row.innerHTML = `
         <td>${plan.name}</td>
-        <td>R$${plan.value}</td>
+        <td>R$${plan.value.toFixed(2)}</td>
         <td>${plan.numberDaysPerWeek}</td>
+        <td>${plan.description}
         <td>
-            <button onclick="populatePaymentPlanForm('${plan.id}', '${plan.name}', '${plan.value}', '${plan.numberDaysPerWeek}')">Editar</button>
+            <button onclick="populatePaymentPlanForm('${plan.id}', '${plan.name}', '${plan.value}', '${plan.numberDaysPerWeek}', '${encodeURIComponent(plan.description)}')">Editar</button>
             <button onclick="deletePaymentPlan('${plan.id}')">Deletar</button>
         </td>
     `;
@@ -134,22 +134,25 @@ function populateUpdateForm(trainee) {
     document.getElementById('updatePhone').value = phone || '';
     document.getElementById('updateEmergencyContact').value = emergencyContact || '';
     document.getElementById('updateAddress').value = address || '';
-    document.getElementById('updateIsActive').checked = isActive; // Ajustado para ser um checkbox
+    document.getElementById('updateIsActive').value = isActive;
     document.getElementById('updatePaymentPlan').value = paymentPlanId || '';
     document.getElementById('updatePaymentDay').value = paymentDay || '';
 
     window.scrollTo(0, document.querySelector('.update-form').offsetTop);
 }
 
-function populatePaymentPlanForm(id, name, value, numberDaysPerWeek) {
+// Popula o formulário de atualização de plano de pagamento
+function populatePaymentPlanForm(id, name, value, numberDaysPerWeek, description) {
     document.getElementById('updatePaymentPlanId').value = id;
     document.getElementById('updatePaymentPlanName').value = name;
     document.getElementById('updatePaymentPlanValue').value = value;
     document.getElementById('updatePaymentPlanDays').value = numberDaysPerWeek;
+    document.getElementById('updatePaymentPlanDescription').value = decodeURIComponent(description);
 
     window.scrollTo(0, document.querySelector('.update-payment-plan-form').offsetTop);
 }
 
+// Lida com a atualização de um trainee
 async function handleTraineeUpdate(event) {
     event.preventDefault();
     const id = document.getElementById('updateId').value;
@@ -160,7 +163,7 @@ async function handleTraineeUpdate(event) {
         phone: document.getElementById('updatePhone').value,
         emergencyContact: document.getElementById('updateEmergencyContact').value,
         address: document.getElementById('updateAddress').value,
-        isActive: document.getElementById('updateIsActive').checked, // Ajustado para checkbox
+        isActive: document.getElementById('updateIsActive').value,
         paymentPlanId: document.getElementById('updatePaymentPlan').value,
         paymentDay: document.getElementById('updatePaymentDay').value,
     };
@@ -171,21 +174,22 @@ async function handleTraineeUpdate(event) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(traineeData),
         });
-        await fetchTrainees(); // Atualiza a lista de trainees
+        await fetchTrainees();
         clearTraineeForm();
     } catch (error) {
         console.error('Erro ao atualizar trainee:', error);
     }
 }
 
-// Função para lidar com a atualização de plano de pagamento
+// Lida com a atualização de um plano de pagamento
 async function handlePaymentPlanUpdate(event) {
     event.preventDefault();
     const id = document.getElementById('updatePaymentPlanId').value;
     const paymentPlanData = {
         name: document.getElementById('updatePaymentPlanName').value,
-        value: document.getElementById('updatePaymentPlanValue').value,
-        numberDaysPerWeek: document.getElementById('updatePaymentPlanDays').value,
+        value: parseFloat(document.getElementById('updatePaymentPlanValue').value),
+        numberDaysPerWeek: parseInt(document.getElementById('updatePaymentPlanDays').value, 10),
+        description: document.getElementById('updatePaymentPlanDescription').value
     };
 
     try {
@@ -194,7 +198,7 @@ async function handlePaymentPlanUpdate(event) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(paymentPlanData),
         });
-        await fetchPaymentPlans(); // Atualiza a lista de planos de pagamento
+        await fetchPaymentPlans();
         clearPaymentPlanForm();
     } catch (error) {
         console.error('Erro ao atualizar plano de pagamento:', error);
@@ -206,7 +210,7 @@ async function deleteTrainee(id) {
     if (confirm('Tem certeza que deseja deletar este trainee?')) {
         try {
             await fetch(`/api/trainee/${id}`, { method: 'DELETE' });
-            await fetchTrainees(); // Atualiza a lista de trainees
+            await fetchTrainees();
         } catch (error) {
             console.error('Erro ao deletar trainee:', error);
         }
@@ -218,7 +222,7 @@ async function deletePaymentPlan(id) {
     if (confirm('Tem certeza que deseja deletar este plano de pagamento?')) {
         try {
             await fetch(`/api/paymentPlan/${id}`, { method: 'DELETE' });
-            await fetchPaymentPlans(); // Atualiza a lista de planos de pagamento
+            await fetchPaymentPlans();
         } catch (error) {
             console.error('Erro ao deletar plano de pagamento:', error);
         }
@@ -227,26 +231,16 @@ async function deletePaymentPlan(id) {
 
 // Limpa o formulário de atualização de trainee
 function clearTraineeForm() {
-    document.getElementById('updateId').value = '';
-    document.getElementById('updateName').value = '';
-    document.getElementById('updateBirthDate').value = '';
-    document.getElementById('updateCpf').value = '';
-    document.getElementById('updatePhone').value = '';
-    document.getElementById('updateEmergencyContact').value = '';
-    document.getElementById('updateAddress').value = '';
-    document.getElementById('updateIsActive').checked = false; // Limpa checkbox
-    document.getElementById('updatePaymentPlan').value = '';
-    document.getElementById('updatePaymentDay').value = '';
+    document.getElementById('updateForm').reset();
+    document.getElementById('updateIsActive').checked = false;
 }
 
 // Limpa o formulário de atualização de plano de pagamento
 function clearPaymentPlanForm() {
-    document.getElementById('updatePaymentPlanId').value = '';
-    document.getElementById('updatePaymentPlanName').value = '';
-    document.getElementById('updatePaymentPlanValue').value = '';
-    document.getElementById('updatePaymentPlanDays').value = '';
+    document.getElementById('updatePaymentPlanForm').reset();
 }
 
+// Formata a data para exibição ou para input[type="date"]
 function formatDate(dateString, isInput = false) {
     const date = new Date(dateString);
 

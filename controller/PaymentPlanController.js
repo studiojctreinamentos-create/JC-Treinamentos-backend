@@ -1,6 +1,7 @@
 const PaymentPlan = require("../models/PaymentPlan");
 const BaseController = require("./BaseController");
 const Trainee = require("../models/Trainee");
+const e = require("express");
 
 class PaymentPlanController extends BaseController {
     constructor() {
@@ -13,7 +14,6 @@ class PaymentPlanController extends BaseController {
             if (!oldData) {
                 throw new Error("Invalid ID");
             }
-
             const data = req.body;
             data.version = oldData.version + 1;
             data.originalId = oldData.originalId;
@@ -46,6 +46,24 @@ class PaymentPlanController extends BaseController {
         }
     }
 
+    async delete(req, res) {
+        try {
+            const trainees = await Trainee.findAll({
+                where: {
+                    PaymentPlanId: req.params.id 
+                }
+            });
+    
+            if (trainees.length === 0) {
+                await super.delete(req, res);
+                return;
+            }
+    
+            res.status(500).json({ erro: 'Existem trainees associados a este plano de pagamento.' });
+        } catch (error) {
+            res.status(500).json({ erro: error.message });
+        }
+    }
     async updateTraineePaymentPlan(oldId, newId) {
         const trainees = await Trainee.findAll({
             where: {

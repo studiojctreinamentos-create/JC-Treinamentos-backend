@@ -13,25 +13,25 @@
         <p class="resume"> Exemplo: <br>
             Nome: Pobre Premium Plus <br>
             Valor: 80,00 <br>
-            Quantidade de Dias Por Semana: 3 <br> 
+            Frequencia de dias: 3 <br> 
             Descrição: Plano padrão de 3 dias por semana com 10 reais de desconto <br>
         </p>
         <p class="obs">
             A Descrição pode ser posta do jeito que vocês quiserem, é para vocês se organizarem, não vai influenciar nada pra mim 😊 
         </p>
 
-        <form id="paymentPlanForm">
+        <form id="paymentPlanForm" autocomplete="off">
             <label for="name"> Nome do Plano</label>
-            <input type="text" id="name" required>
+            <input type="text" id="name" placeholder="Plano Pobre Premium" required>
 
             <label for="value"> Valor </label>
-            <input class="number-input" type="number" id="value" step="0.01" required>
+            <input class="number-input" type="number" id="value" step="any" placeholder="89,90" required>
 
             <label for="numberDaysPerWeek"> Frequencia de dias </label>
-            <input type="number" id="numberDaysPerWeek" step="1" required>
+            <input type="number" id="numberDaysPerWeek" placeholder="1-7" step="1" min="1" max="7" required>
 
             <label for="description"> Descrição </label>
-            <textarea id="description" rows="4" cols="50"></textarea>
+            <textarea id="description" rows="4" cols="50" placeholder="Plano muito legal de 3 dias por semana 😉"></textarea>
 
             <div class="button-container">
                 <button type="submit">Salvar</button>

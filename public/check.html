@@ -41,7 +41,7 @@
 
         <section class="update-form">
             <h4 class="title">Atualizar Trainee</h4>
-            <form id="updateForm">
+            <form id="updateForm" autocomplete="off">
                 <input type="hidden" id="updateId">
                 <label for="updateName">Nome:</label>
                 <input type="text" id="updateName" required>
@@ -76,6 +76,7 @@
                         <th>Nome</th>
                         <th>Valor</th>
                         <th>Dias por Semana</th>
+                        <th>Descrição</th>
                         <th>Ações</th>
                     </tr>
                 </thead>
@@ -87,14 +88,16 @@
 
         <section class="update-payment-plan-form">
             <h4 class="title">Atualizar Plano de Pagamento</h4>
-            <form id="updatePaymentPlanForm">
+            <form id="updatePaymentPlanForm" autocomplete="off">
                 <input type="hidden" id="updatePaymentPlanId">
                 <label for="updatePaymentPlanName">Nome:</label>
                 <input type="text" id="updatePaymentPlanName" required>
                 <label for="updatePaymentPlanValue">Valor:</label>
-                <input type="number" id="updatePaymentPlanValue" required>
+                <input type="number" id="updatePaymentPlanValue" step="any" required>
                 <label for="updatePaymentPlanDays">Dias por Semana:</label>
-                <input type="number" id="updatePaymentPlanDays" required>
+                <input type="number" id="updatePaymentPlanDays" min="1" max="7" required>
+                <label for="updatePaymentPlanDescription"> Descrição:</label>
+                <textarea name="updatePaymentPlanDescription" id="updatePaymentPlanDescription"></textarea>
                 <button type="submit">Atualizar Plano de Pagamento</button>
             </form>
         </section>

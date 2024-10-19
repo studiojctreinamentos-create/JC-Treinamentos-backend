@@ -21,7 +21,7 @@ async function startServer() {
       
       // Inicia o servidor após a sincronização
       app.listen(port, () => {
-        console.log(`Servidor rodando em http://localhost:${port}`)
+        console.log("Servidor rodando")
       });
     } catch (error) {
       console.error('Erro ao iniciar o servidor:', error)

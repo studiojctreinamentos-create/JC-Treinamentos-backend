@@ -1,4 +1,5 @@
 const express = require('express')
+const cors = require('cors')
 const path=require('path')
 
 const app = express()
@@ -7,6 +8,8 @@ const port = 8000
 const syncDatabase = require('./connection/sync')
 const routes = require('./routes')
 const publicRoute = require('./routes/public')
+
+app.use(cors());
 
 app.use(express.static(path.join(__dirname, 'public')))
 

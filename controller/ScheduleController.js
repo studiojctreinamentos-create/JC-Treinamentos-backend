@@ -1,9 +1,13 @@
+const BaseController = require('./BaseController')
 const {addDays, format, isWeekend, differenceInCalendarDays, getDay} = require('date-fns')
 const Schedule = require('../models/Schedule')
+const SessionController = require('./SessionController')
 
 
-class ScheduleController{
-    constructor() {}
+class ScheduleController extends BaseController{
+    constructor() {
+        super(Schedule)
+    }
 
     async ensure90DaysOfSchedules(){
         try {
@@ -25,7 +29,7 @@ class ScheduleController{
 
     async addWorkdaysFrom(startDate, daysToAdd){
         const schedules = []
-        let currentDate = startDate;
+        let currentDate = startDate
 
         while (daysToAdd > 0){
             currentDate = addDays(currentDate, 1)
@@ -41,15 +45,15 @@ class ScheduleController{
 
         try{
             if(schedules.length > 0){
-                await Schedule.bulkCreate(schedules);
+                const createdSchedules = await Schedule.bulkCreate(schedules)
+
+                for(const schedule of createdSchedules){
+                    await SessionController.createSessionToSchedule(schedule.weekDay, schedule.id)
+                }
             }
         }catch(err){
             console.error('Erro ao adicionar schedules:', err)
         }
     }
-
 }
-
-
-
 module.exports = new ScheduleController()

@@ -8,10 +8,7 @@ Schedule.init({
     type: DataTypes.DATE,
     allowNull: false
   },
-  time: {
-    type: DataTypes.STRING,
-    allowNull: false
-  },
+
   weekDay: {
     type: DataTypes.STRING,
     allowNull: false

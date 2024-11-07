@@ -8,7 +8,11 @@ class TraineeSession extends Model {}
 TraineeSession.init({
   attendance: {
     type: DataTypes.INTEGER
-  }
+  },
+  isRecurring: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  },
 }, {
   sequelize,
   modelName: 'TraineeSession'

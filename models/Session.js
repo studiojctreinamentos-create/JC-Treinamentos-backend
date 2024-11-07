@@ -6,14 +6,14 @@ const Schedule = require('./Schedule');
 class Session extends Model {}
 
 Session.init({
-  isRecurring: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: false
-  },
   maxTrainee: {
     type: DataTypes.INTEGER,
     allowNull: false
-  }
+  },
+  time: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
 }, {
   sequelize,
   modelName: 'Session'

@@ -14,6 +14,14 @@ Session.init({
     type: DataTypes.STRING,
     allowNull: false
   },
+  scheduleId: {
+    type: DataTypes.INTEGER,
+    allowNull: false, 
+    references: {
+        model: 'Schedule', 
+        key: 'id' 
+    }
+  }
 }, {
   sequelize,
   modelName: 'Session'

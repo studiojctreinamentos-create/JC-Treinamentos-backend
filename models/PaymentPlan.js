@@ -19,6 +19,11 @@ PaymentPlan.init({
     type: DataTypes.INTEGER,
     allowNull: false
   },
+  billingInterval: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 1
+  },
   description: {
     type: DataTypes.STRING
   },

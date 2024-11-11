@@ -33,7 +33,15 @@ Trainee.init({
   isActive: {
     type: DataTypes.BOOLEAN,
     defaultValue: true
-  }
+  },
+  paymentPlanId: {
+    type: DataTypes.INTEGER,
+    allowNull: false, 
+    references: {
+        model: 'PaymentPlan', 
+        key: 'id' 
+    }
+  },
 }, {
   sequelize,
   modelName: 'Trainee'

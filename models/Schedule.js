@@ -5,7 +5,7 @@ class Schedule extends Model {}
 
 Schedule.init({
   date: {
-    type: DataTypes.DATE,
+    type: DataTypes.DATEONLY,
     allowNull: false
   },
 

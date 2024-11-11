@@ -7,13 +7,30 @@ class Payment extends Model {}
 
 Payment.init({
   paymentDate: {
-    type: DataTypes.DATE,
+    type: DataTypes.DATEONLY,
     allowNull: false
   },
   status: {
     type: DataTypes.BOOLEAN,
-    allowNull: false
+    allowNull: false,
+    defaultValue: false
   },
+  traineeId: {
+    type: DataTypes.INTEGER,
+    allowNull: false, 
+    references: {
+        model: 'Trainees', 
+        key: 'id' 
+    }
+  },
+  paymentPlanId: {
+    type: DataTypes.INTEGER,
+    allowNull: false, 
+    references: {
+        model: 'PaymentPlan', 
+        key: 'id' 
+    }
+  }
 }, {
   sequelize,
   modelName: 'Payment'

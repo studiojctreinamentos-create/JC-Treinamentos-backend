@@ -15,7 +15,7 @@ class SessionController extends BaseController{
                 where: { day: dayOfWeek }
             });
 
-            console.log(scheduleConfig)
+
     
             // Verificar se as configurações de horário foram encontradas
             if (!scheduleConfig || scheduleConfig.length === 0) {
@@ -43,7 +43,7 @@ class SessionController extends BaseController{
     
             // Criar as sessões no banco de dados
             await Session.bulkCreate(sessions);
-            console.log("Sessões criadas com sucesso");
+            console.log("Sessões criadas com sucesso")
         } catch (err) {
             console.error("Unable to add sessions:", err.message);
         }

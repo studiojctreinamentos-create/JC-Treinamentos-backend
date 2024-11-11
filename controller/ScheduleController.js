@@ -12,13 +12,11 @@ class ScheduleController extends BaseController{
     async ensure90DaysOfSchedules(){
         try {
             const today = new Date()
-
             const lastSchedule = await Schedule.findOne({ order: [['date', 'DESC']]})
             const lastDate = lastSchedule ? new Date(lastSchedule.date) : today
-
             const daysRemaining = 90 - differenceInCalendarDays(lastDate, today)
-
             if(daysRemaining > 0){
+
                 await this.addWorkdaysFrom(lastDate, daysRemaining)
             }
 

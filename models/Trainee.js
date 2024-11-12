@@ -30,6 +30,9 @@ Trainee.init({
   address: {
     type: DataTypes.STRING
   },
+  observations:{
+    type: DataTypes.STRING
+  },
   isActive: {
     type: DataTypes.BOOLEAN,
     defaultValue: true
@@ -38,7 +41,7 @@ Trainee.init({
     type: DataTypes.INTEGER,
     allowNull: false, 
     references: {
-        model: 'PaymentPlan', 
+        model: PaymentPlan, 
         key: 'id' 
     }
   },

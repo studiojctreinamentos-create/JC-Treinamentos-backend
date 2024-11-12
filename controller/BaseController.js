@@ -3,9 +3,9 @@ class BaseController {
         this.model = model
     }
 
-    async create(req, res){
+    async create(req, res, options = {}){
         try{
-            const newRecord = await this.model.create(req.body)
+            const newRecord = await this.model.create(req.body, {transaction: options.transaction})
             res.status(201).json(newRecord)
         }catch(e){
             res.status(500).json({error: e.message})
@@ -21,7 +21,7 @@ class BaseController {
         }
     }
 
-    async findById(req, res){
+    async findById(req, res, options = {}){
         try{
             const data = await this.model.findByPk(req.params.id)
             if(!data){
@@ -33,24 +33,24 @@ class BaseController {
         }
     }
 
-    async update(req, res){
+    async update(req, res, options = {}){
         try{
-            const data = await this.model.findByPk(req.params.id)
+            const data = await this.model.findByPk(req.params.id, {transaction: options.transaction})
 
             if(!data){
                 throw new Error("invalid id")
             }
             
-            await data.update(req.body)
+            await data.update(req.body, {transaction: options.transaction})
             res.status(200).json(data)
         }catch(e){
             res.status(500).json({error: e.message})
         }
     }
 
-    async delete(req, res){
+    async delete(req, res, options = {}){
         try{
-            const data = await this.model.findByPk(req.params.id)
+            const data = await this.model.findByPk(req.params.id, {transaction: options.transaction})
             if(!data){
                 throw new Error("data not found")
             }

@@ -18,7 +18,7 @@ Session.init({
     type: DataTypes.INTEGER,
     allowNull: false, 
     references: {
-        model: 'Schedule', 
+        model: Schedule, 
         key: 'id' 
     }
   }

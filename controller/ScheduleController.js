@@ -32,12 +32,12 @@ class ScheduleController extends BaseController{
         while (daysToAdd > 0){
             currentDate = addDays(currentDate, 1)
 
-            if(!isWeekend(currentDate)){
+            if (currentDate.getDay() !== 0) {
                 schedules.push({
                     date: format(currentDate, 'yyyy-MM-dd'),
                     weekDay: currentDate.getDay()
-                })
-                daysToAdd--
+                });
+                daysToAdd--;
             }
         }
 

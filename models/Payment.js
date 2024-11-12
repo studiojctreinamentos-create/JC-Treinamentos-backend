@@ -19,7 +19,7 @@ Payment.init({
     type: DataTypes.INTEGER,
     allowNull: false, 
     references: {
-        model: 'Trainees', 
+        model: Trainee, 
         key: 'id' 
     }
   },
@@ -27,7 +27,7 @@ Payment.init({
     type: DataTypes.INTEGER,
     allowNull: false, 
     references: {
-        model: 'PaymentPlan', 
+        model: PaymentPlan, 
         key: 'id' 
     }
   }

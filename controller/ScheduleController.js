@@ -1,55 +1,78 @@
-const {addDays, format, isWeekend, differenceInCalendarDays, getDay} = require('date-fns')
-const Schedule = require('../models/Schedule')
+const BaseController = require("./BaseController");
+const { addDays, format, differenceInCalendarDays, startOfDay } = require("date-fns");
+const Schedule = require("../models/Schedule");
+const SessionController = require("./SessionController");
+const { Op } = require("sequelize");
 
+class ScheduleController extends BaseController {
+  constructor() {
+    super(Schedule);
+  }
 
-class ScheduleController{
-    constructor() {}
+  async ensure90DaysOfSchedules() {
+    try {
+      const today = new Date();
+      const lastSchedule = await Schedule.findOne({
+        order: [["date", "DESC"]],
+      });
+      const lastDate = lastSchedule ? new Date(lastSchedule.date) : today;
+      const daysRemaining = 90 - differenceInCalendarDays(lastDate, today);
+      if (daysRemaining > 0) {
+        await this.addWorkdaysFrom(lastDate, daysRemaining);
+      }
+    } catch (err) {
+      console.log("Erro ao garantir 90 dias de schedules futuros:", err);
+    }
+  }
 
-    async ensure90DaysOfSchedules(){
-        try {
-            const today = new Date()
+  async addWorkdaysFrom(startDate, daysToAdd) {
+    const schedules = [];
+    let currentDate = startDate;
 
-            const lastSchedule = await Schedule.findOne({ order: [['date', 'DESC']]})
-            const lastDate = lastSchedule ? new Date(lastSchedule.date) : today
+    while (daysToAdd > 0) {
+      currentDate = addDays(currentDate, 1);
 
-            const daysRemaining = 90 - differenceInCalendarDays(lastDate, today)
-
-            if(daysRemaining > 0){
-                await this.addWorkdaysFrom(lastDate, daysRemaining)
-            }
-
-        }catch(err){
-            console.log('Erro ao garantir 90 dias de schedules futuros:', err)
-        }
+      if (currentDate.getDay() !== 0) {
+        schedules.push({
+          date: format(currentDate, "yyyy-MM-dd"),
+          weekDay: currentDate.getDay(),
+        });
+        daysToAdd--;
+      }
     }
 
-    async addWorkdaysFrom(startDate, daysToAdd){
-        const schedules = []
-        let currentDate = startDate;
+    try {
+      if (schedules.length > 0) {
+        const createdSchedules = await Schedule.bulkCreate(schedules);
 
-        while (daysToAdd > 0){
-            currentDate = addDays(currentDate, 1)
-
-            if(!isWeekend(currentDate)){
-                schedules.push({
-                    date: format(currentDate, 'yyyy-MM-dd'),
-                    weekDay: currentDate.getDay()
-                })
-                daysToAdd--
-            }
+        for (const schedule of createdSchedules) {
+          await SessionController.createSessionToSchedule(
+            schedule.weekDay,
+            schedule.id
+          );
         }
-
-        try{
-            if(schedules.length > 0){
-                await Schedule.bulkCreate(schedules);
-            }
-        }catch(err){
-            console.error('Erro ao adicionar schedules:', err)
-        }
+      }
+    } catch (error) {
+      console.error("Erro ao adicionar schedules:", error);
     }
+  }
 
+  async findByDayOfWeekAndDate(dayOfWeek, date, options = {}) {
+    try {
+
+      const schedules = await Schedule.findAll({
+        where: {
+          weekDay: dayOfWeek,
+          date: {
+            [Op.gte]: date,
+          },
+        },
+        transaction: options.transaction,
+      });
+      return schedules;
+    } catch (error) {
+      console.error("message:", error.message);
+    }
+  }
 }
-
-
-
-module.exports = new ScheduleController()
+module.exports = new ScheduleController();

@@ -1,5 +1,6 @@
 const { Model, DataTypes } = require('sequelize');
 const sequelize = require('../connection/db');
+const Trainee = require('./Trainee')
 
 class PaymentPlan extends Model {}
 
@@ -18,6 +19,11 @@ PaymentPlan.init({
   numberDaysPerWeek: {
     type: DataTypes.INTEGER,
     allowNull: false
+  },
+  billingInterval: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 1
   },
   description: {
     type: DataTypes.STRING

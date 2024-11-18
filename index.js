@@ -3,7 +3,7 @@ const cors = require('cors')
 const path=require('path')
 
 const app = express()
-const port = 8000
+const port = 3000
 
 const syncDatabase = require('./connection/sync');
 const routes = require('./routes')

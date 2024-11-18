@@ -1,20 +1,24 @@
 require('dotenv').config();
 
 const sequelize = require('./db');
-const Trainee = require('../models/Trainee');
-const PaymentPlan = require('../models/PaymentPlan');
-const Payment = require('../models/Payment')
-const Coach = require('../models/Coach');
-const Session = require('../models/Session');
-const TraineeSession = require('../models/TraineeSession');
+const ScheduleConfig = require('../models/ScheduleConfig')
+const Config = require('../models/Config')
 const Schedule = require('../models/Schedule');
+const Session = require('../models/Session');
+const Coach = require('../models/Coach');
+const PaymentPlan = require('../models/PaymentPlan');
+const Trainee = require('../models/Trainee');
+const Payment = require('../models/Payment')
+const TraineeSession = require('../models/TraineeSession');
 
-const scheduleController = require('../controller/ScheduleController');
+const ScheduleController = require('../controller/ScheduleController');
+const ConfigController = require('../controller/ConfigController')
 
 async function syncDatabase() {
   try {
-    await sequelize.sync({force: false});
-    await scheduleController.ensure90DaysOfSchedules();
+    await sequelize.sync({force: true});
+    await ConfigController.createDefaultConfigs.call(ConfigController);
+    await ScheduleController.ensure90DaysOfSchedules();
     console.log('Banco de dados sincronizado.');
   } catch (error) {
     console.error('Erro ao sincronizar banco de dados:', error);

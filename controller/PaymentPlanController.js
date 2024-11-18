@@ -33,10 +33,9 @@ class PaymentPlanController extends BaseController {
             const newPlan = await PaymentPlan.create({
                 ...req.body,
                 version: 0,
-                originalId: null // Inicializando o originalId
+                originalId: null 
             });
 
-            // Atualiza o originalId para ser igual ao ID recém-criado
             newPlan.originalId = newPlan.id;
             await newPlan.save();
 

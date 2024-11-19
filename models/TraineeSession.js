@@ -3,6 +3,7 @@ const sequelize = require('../connection/db');
 
 const Session = require('./Session');
 const TraineeSessionConfig = require('./TraineeSessionConfig');
+const Trainee = require('./Trainee');
 
 class TraineeSession extends Model {}
 
@@ -15,11 +16,11 @@ TraineeSession.init({
     type: DataTypes.BOOLEAN,
     defaultValue: false
   },
-  traineeSessionConfigId:{
+  traineeId:{
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: TraineeSessionConfig, 
+      model: Trainee, 
       key: 'id' 
     }
   },
@@ -36,7 +37,7 @@ TraineeSession.init({
   modelName: 'TraineeSession'
 });
 
-TraineeSession.belongsTo(TraineeSessionConfig, { foreignKey: 'traineeSessionConfigId' });
+TraineeSession.belongsTo(Trainee, { foreignKey: 'traineeId' });
 TraineeSession.belongsTo(Session, { foreignKey: 'sessionId' });
 
 module.exports = TraineeSession;

@@ -13,7 +13,6 @@ class SessionController extends BaseController {
 
   async createSessionToSchedule(dayOfWeek, scheduleId) {
     try {
-      // Buscar as configurações de horários para o dia especificado
       const scheduleConfig = await ScheduleConfig.findAll({
         where: { day: dayOfWeek },
       });

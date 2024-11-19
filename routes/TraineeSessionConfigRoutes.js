@@ -1,13 +1,26 @@
-const express = require('express')
-const router = express.Router()
-const TraineeSessionController = require('../controller/TraineeSessionController')
+const express = require("express");
+const router = express.Router();
+const TraineeSessionConfigController = require("../controller/TraineeSessionConfigController");
 
-router.post('/', TraineeSessionController.create.bind(TraineeSessionController))
-router.get('/', TraineeSessionController.findAll.bind(TraineeSessionController))
-router.get('/:id', TraineeSessionController.findById.bind(TraineeSessionController))
-router.put('/:id', TraineeSessionController.update.bind(TraineeSessionController))
-router.delete('/:id', TraineeSessionController.delete.bind(TraineeSessionController))
+router.post(
+  "/",
+  TraineeSessionConfigController.create.bind(TraineeSessionConfigController)
+);
+router.get(
+  "/",
+  TraineeSessionConfigController.findAll.bind(TraineeSessionConfigController)
+);
+router.get(
+  "/:id",
+  TraineeSessionConfigController.findById.bind(TraineeSessionConfigController)
+);
+router.put(
+  "/:id",
+  TraineeSessionConfigController.update.bind(TraineeSessionConfigController)
+);
+router.delete(
+  "/:id",
+  TraineeSessionConfigController.delete.bind(TraineeSessionConfigController)
+);
 
-
-
-module.exports = router
+module.exports = router;

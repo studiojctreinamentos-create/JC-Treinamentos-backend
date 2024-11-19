@@ -1,9 +1,9 @@
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 
 const authenticate = (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[1];
+  const token = req.headers.authorization?.split(" ")[1];
   if (!token) {
-    return res.status(401).json({ error: 'Acesso negado.' });
+    return res.status(401).json({ error: "Acesso negado." });
   }
 
   try {
@@ -11,7 +11,7 @@ const authenticate = (req, res, next) => {
     req.userId = decoded.userId;
     next();
   } catch (err) {
-    res.status(401).json({ error: 'Token inválido.' });
+    res.status(401).json({ error: "Token inválido." });
   }
 };
 

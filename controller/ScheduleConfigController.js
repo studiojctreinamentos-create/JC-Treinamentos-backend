@@ -3,10 +3,10 @@ const BaseController = require("./BaseController");
 const ScheduleConfig = require("../models/ScheduleConfig");
 const scheduleDefaultConfig = require("../config/scheduleConfigData");
 const Schedule = require("../models/Schedule");
-const ScheduleController = require("./ScheduleController")
+const ScheduleController = require("./ScheduleController");
 const SessionController = require("./SessionController");
 const { Op } = require("sequelize");
-const { startOfDay,  format} = require("date-fns");
+const { startOfDay, format } = require("date-fns");
 
 class ScheduleConfigController extends BaseController {
   constructor() {
@@ -88,16 +88,20 @@ class ScheduleConfigController extends BaseController {
       const config = await ScheduleConfig.findByPk(req.params.id);
 
       const today = startOfDay(new Date());
-      const data = req.body
+      const data = req.body;
 
       const dayOfWeek = config.day;
       const time = config.time;
 
-      const date = data.date ? new Date(data.date) : today
+      const date = data.date ? new Date(data.date) : today;
       const UTCDate = date.setUTCHours(12, 0, 0, 0);
       const formatedDate = format(UTCDate, "yyyy-MM-dd");
 
-      const schedules = await ScheduleController.findByDayOfWeekAndDate(dayOfWeek, formatedDate, transaction);
+      const schedules = await ScheduleController.findByDayOfWeekAndDate(
+        dayOfWeek,
+        formatedDate,
+        transaction
+      );
       const scheduleIds = schedules.map((schedule) => schedule.id);
 
       await SessionController.destroySessionsFromTimeAndSchedulesId(
@@ -109,7 +113,9 @@ class ScheduleConfigController extends BaseController {
       await config.destroy({ transaction });
 
       await transaction.commit();
-      res.status(200).json({ message: "configs and sessions deleted with sucess"});;
+      res
+        .status(200)
+        .json({ message: "configs and sessions deleted with sucess" });
     } catch (error) {
       await transaction.rollback();
       res.status(500).json({ message: error.message });

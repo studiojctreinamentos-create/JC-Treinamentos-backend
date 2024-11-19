@@ -1,136 +1,136 @@
-const BaseController = require('./BaseController')
-const Trainee = require('../models/Trainee')
-const TraineeSession= require('../models/TraineeSession')
-const Session = require('../models/Session')
-const ScheduleConfig = require('../models/ScheduleConfig')
-const Schedule = require('../models/Schedule')
-const { Op } = require('sequelize')
-const {startOfDay} = require('date-fns')
+const BaseController = require("./BaseController");
+const TraineeSessionConfig = require("../models/TraineeSessionConfig");
+const TraineeSession = require("../models/TraineeSession");
+const Session = require("../models/Session");
+const Schedule = require("../models/Schedule");
+const { Op } = require("sequelize");
+const { startOfDay } = require("date-fns");
 
-// rodrigo - quinta-feira - 8:00 - é recorrente
+class TraineeSessionController extends BaseController {
+  constructor() {
+    super(TraineeSession);
+  }
 
-// Rodrigo Deve ter uma sessão todas as quintas feiras apartir de hoje as 8hrs
+  async createRecorrentTraineeSession() {
+    try {
+      const configs = await TraineeSessionConfig.findAll();
+      const today = startOfDay(new Date());
 
-// Onde - weekDay = 4 -- Session -> Schedule
-// Onde - time = 8:00 -- Session
+      const traineeSessions = [];
 
-// Rodrigo tem aula
+      for (const config of configs) {
+        const date = await this.getDateForLastTraineeSession(
+          config.dayOfWeek,
+          config.time,
+          config.traineeId
+        );
 
-// Criar Sessões para rodrigo baseado na session onde horario é 8:00 e schedule está relacionado com weekDay = 4.
+        const sessions = await Session.findAll({
+          include: {
+            model: Schedule,
+            where: {
+              [Op.or]: [{ date: { [Op.gt]: date || today } }, { date: null }],
+              weekDay: config.dayOfWeek,
+            },
+            attributes: [],
+          },
+          where: {
+            time: config.time,
+          },
+          attributes: ["id"],
+        });
 
-// TraineeSession 
+        sessions.forEach((session) => {
+          traineeSessions.push({
+            traineeId: config.traineeId,
+            sessionId: session.id,
+            isRecurring: true,
+          });
+        });
+      }
 
-// Trainee = rodrigo
-
-// Session = time: 8:00 -> Schedule: { weekDay: 4, day: 21/11}
-
-// CriarSessõesParaRodrigo( RodrigoId, Session) 
-
-// Crio sessão baseado nessa, e para cada session onde time: 8:00 schedule.weekday = 4. e session.schedule.date > lastSession crio traineeSchedule.create(RodrigoId, session)
-
-// LastSession = buscar uma TraineeSession (primeira) - ordenada descrecente via traineeSession.session.schedule.date 
-
-// [segunda-16:00, terça-9:00, quinta-8:00] - rodrigo 
-
-
-
-
-
-
-class TraineeSessionController extends BaseController{
-    constructor() {
-        super(TraineeSession)
+      if (traineeSessions.length > 0) {
+        await TraineeSession.bulkCreate(traineeSessions, {
+          ignoreDuplicates: true,
+        });
+      }
+    } catch (error) {
+      console.error(`Erro ao buscar configs: ${error.message}`);
     }
+  }
 
-    async createRecorringTraineeSession(traineeId, dayOfWeek, time){
-        try {
-            const date = startOfDay(new Date());
-            console.log(time)
-            const sessions = await Session.findAll(
-                {
-                    include: {
-                        model: Schedule,
-                        where: {
-                            weekDay: dayOfWeek,
-                            date:{[Op.gte] : date}
-                        }
-                    },
-                    where: {
-                        time: time
-                    }
-                }
-            )
+  async getDateForLastTraineeSession(dayOfWeek, time, traineeId) {
+    try {
+      const lastTrainee = await TraineeSession.findOne({
+        include: {
+          model: Session,
+          include: {
+            model: Schedule,
+            attributes: ["date"],
+            where: {
+              weekDay: dayOfWeek,
+            },
+          },
+          where: {
+            time: time,
+          },
+        },
+        where: {
+          traineeId: traineeId,
+        },
+        order: [[Session, Schedule, "date", "DESC"]],
+        attributes: [],
+      });
 
-            console.log(sessions)
-
-
-            const traineeSessions = sessions.map(session => ({
-                traineeId: traineeId,
-                sessionId: session.id,
-            }))
-
-            console.log(traineeSessions)
-
-            
-        } catch (error) {
-            console.error("message:"+ error.message)
-        }
-
+      return lastTrainee?.Session?.Schedule?.date || null;
+    } catch (error) {
+      console.error(`Erro ao buscar última TraineeSession: ${error.message}`);
+      return null;
     }
+  }
 
-    async createTraineeSessionRecorringForAllTrainees(){
+  async deleteTraineeSessionByConfig(config, options = {}) {
+    try {
+      const today = startOfDay(new Date());
 
+      const sessions = await Session.findAll({
+        include: {
+          model: Schedule,
+          where: {
+            weekDay: config.dayOfWeek,
+            date: { [Op.gt]: today },
+          },
+          attributes: [],
+        },
+        where: {
+          time: config.time,
+        },
+        attributes: ["id"],
+      });
 
-        await this.createRecorringTraineeSession(1, 1, "06:00:00")
+      if (!sessions || sessions.length === 0) {
+        throw new Error("No sessions found with the provided config data.");
+      }
 
-        // try {
-        //     const traineeSessions = await this.findRecurringTraineeSessionsWithDayAndTime()
+      const sessionIds = sessions.map((session) => session.id);
 
-        //     if(traineeSessions.length === 0){
-        //         console.log("There is no recurring traineeSessions")
-        //         return
-        //     }
+      const deletedRows = await TraineeSession.destroy({
+        where: {
+          traineeId: config.traineeId,
+          sessionId: {
+            [Op.in]: sessionIds,
+          },
+        },
+        transaction: options.transaction,
+      });
 
-        //     const traineeSessionformated = traineeSessions.map(traineeSession => ({
-        //         id: traineeSession.id,
-        //         traineeId: traineeSession.traineeId,
-        //         weekDay: traineeSession.Session.Schedule.weekDay,
-        //         time: traineeSession.Session.time,
-        //         date: traineeSession.Session.Schedule.date,
-        //         attendance: traineeSession.attendance,
-        //     })) 
-        //     console.log(traineeSessionformated)
-
-            
-
-
-        // } catch (error) {
-        //     console.error("message:" + error.message)
-        // }
+      if (deletedRows === 0) {
+        throw new Error("No rows were deleted.");
+      }
+    } catch (error) {
+      throw new Error(`Error deleting trainee sessions: ${error.message}`);
     }
-
-    async findRecurringTraineeSessionsWithDayAndTime(){
-        try {
-            return await TraineeSession.findAll({
-                include: {
-                    model: Session,
-                    required: true,
-                    include: {
-                        model: Schedule,
-                        attributes: ['weekDay', 'date']
-                    },
-                    attributes: ['time']
-                },
-                where: {
-                    isRecurring: true
-                }
-            })
-   
-        } catch (error) {
-            console.error("message:" + error.message)
-            return []
-        }
-    }
+  }
 }
 
-module.exports = new TraineeSessionController()
+module.exports = new TraineeSessionController();

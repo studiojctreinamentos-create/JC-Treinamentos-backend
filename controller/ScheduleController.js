@@ -1,7 +1,13 @@
 const BaseController = require("./BaseController");
-const { addDays, format, differenceInCalendarDays, startOfDay } = require("date-fns");
-const Schedule = require("../models/Schedule");
+const TraineeSessionController = require("./TraineeSessionController");
 const SessionController = require("./SessionController");
+const {
+  addDays,
+  format,
+  differenceInCalendarDays,
+  startOfDay,
+} = require("date-fns");
+const Schedule = require("../models/Schedule");
 const { Op } = require("sequelize");
 
 class ScheduleController extends BaseController {
@@ -18,14 +24,15 @@ class ScheduleController extends BaseController {
       const lastDate = lastSchedule ? new Date(lastSchedule.date) : today;
       const daysRemaining = 90 - differenceInCalendarDays(lastDate, today);
       if (daysRemaining > 0) {
-        await this.addWorkdaysFrom(lastDate, daysRemaining);
+        await this.addWorkDaysFrom(lastDate, daysRemaining);
+        await TraineeSessionController.createRecorrentTraineeSession();
       }
     } catch (err) {
       console.log("Erro ao garantir 90 dias de schedules futuros:", err);
     }
   }
 
-  async addWorkdaysFrom(startDate, daysToAdd) {
+  async addWorkDaysFrom(startDate, daysToAdd) {
     const schedules = [];
     let currentDate = startDate;
 
@@ -59,7 +66,6 @@ class ScheduleController extends BaseController {
 
   async findByDayOfWeekAndDate(dayOfWeek, date, options = {}) {
     try {
-
       const schedules = await Schedule.findAll({
         where: {
           weekDay: dayOfWeek,

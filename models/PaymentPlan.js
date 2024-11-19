@@ -6,7 +6,8 @@ class PaymentPlan extends Model {}
 
 PaymentPlan.init({
   originalId: {
-    type: DataTypes.INTEGER
+    type: DataTypes.INTEGER,
+    defaultValue: null
   },
   name: {
     type: DataTypes.STRING,
@@ -29,7 +30,8 @@ PaymentPlan.init({
     type: DataTypes.STRING
   },
   version: {
-    type: DataTypes.INTEGER
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
   },
 }, {
   sequelize,

@@ -1,8 +1,6 @@
 const BaseController = require("./BaseController");
-const TraineeSessionConfig = require("../models/TraineeSessionConfig");
-const TraineeSession = require("../models/TraineeSession");
-const Session = require("../models/Session");
-const Schedule = require("../models/Schedule");
+const {TraineeSessionConfig, TraineeSession, Session, Schedule} = require("../models/");
+
 const { Op } = require("sequelize");
 const { startOfDay } = require("date-fns");
 

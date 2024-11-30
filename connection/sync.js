@@ -1,14 +1,14 @@
 require('dotenv').config();
 
 const sequelize = require('./db');
+const PaymentPlan = require('../models/PaymentPlan'); 
 const ScheduleConfig = require('../models/ScheduleConfig')
 const Config = require('../models/Config')
 const Schedule = require('../models/Schedule');
 const Session = require('../models/Session');
-const Coach = require('../models/Coach');
-const PaymentPlan = require('../models/PaymentPlan');
-const Trainee = require('../models/Trainee');
 const Payment = require('../models/Payment')
+const Trainee = require('../models/Trainee');
+const Coach = require('../models/Coach');
 const TraineeSession = require('../models/TraineeSession');
 const TraineeSessionConfig = require('../models/TraineeSessionConfig');
 

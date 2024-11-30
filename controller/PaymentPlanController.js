@@ -1,7 +1,6 @@
-const PaymentPlan = require("../models/PaymentPlan");
+const {PaymentPlan, Trainee} = require("../models/");
 const BaseController = require("./BaseController");
-const Trainee = require("../models/Trainee");
-const e = require("express");
+
 
 class PaymentPlanController extends BaseController {
   constructor() {

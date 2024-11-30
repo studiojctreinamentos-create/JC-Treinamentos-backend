@@ -1,5 +1,5 @@
 const BaseController = require("./BaseController");
-const Config = require("../models/Config");
+const {Config} = require("../models/");
 const DefaultConfig = require("../config/config");
 const ScheduleConfigController = require("./ScheduleConfigController");
 

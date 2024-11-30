@@ -7,7 +7,7 @@ const {
   differenceInCalendarDays,
   startOfDay,
 } = require("date-fns");
-const Schedule = require("../models/Schedule");
+const {Schedule} = require("../models/");
 const { Op } = require("sequelize");
 
 class ScheduleController extends BaseController {

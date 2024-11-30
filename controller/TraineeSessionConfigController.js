@@ -1,7 +1,7 @@
 const sequelize = require("../connection/db");
 const BaseController = require("./BaseController");
 const TraineeSessionController = require("./TraineeSessionController");
-const TraineeSessionConfig = require("../models/TraineeSessionConfig");
+const {TraineeSessionConfig} = require("../models/");
 
 class TraineeSessionConfigController extends BaseController {
   constructor() {

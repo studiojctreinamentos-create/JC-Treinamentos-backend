@@ -1,6 +1,6 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const Coach = require("../models/Coach");
+const {Coach} = require("../models/");
 
 class CoachController {
   async register(req, res) {

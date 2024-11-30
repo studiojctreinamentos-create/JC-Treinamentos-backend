@@ -27,7 +27,7 @@ class BaseController {
     try {
       const data = await this.model.findByPk(req.params.id);
       if (!data) {
-        return res.status(400).Json({ message: "invalid id" });
+        return res.status(400).json({ message: "invalid id" });
       }
       res.status(200).json(data);
     } catch (e) {
@@ -42,7 +42,7 @@ class BaseController {
       });
 
       if (!data) {
-        return res.status(400).Json({ message: "invalid id" });
+        return res.status(400).json({ message: "invalid id" });
       }
 
       await data.update(req.body, { transaction: options.transaction });
@@ -58,7 +58,7 @@ class BaseController {
         transaction: options.transaction,
       });
       if (!data) {
-        return res.status(400).Json({ message: "invalid id" });
+        return res.status(400).json({ message: "invalid id" });
       }
       await data.destroy();
       res.json({ message: "data deleted" });

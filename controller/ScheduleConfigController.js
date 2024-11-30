@@ -1,8 +1,7 @@
 const sequelize = require("../connection/db");
 const BaseController = require("./BaseController");
-const ScheduleConfig = require("../models/ScheduleConfig");
+const {ScheduleConfig, Schedule} = require("../models/");
 const scheduleDefaultConfig = require("../config/scheduleConfigData");
-const Schedule = require("../models/Schedule");
 const ScheduleController = require("./ScheduleController");
 const SessionController = require("./SessionController");
 const { Op } = require("sequelize");

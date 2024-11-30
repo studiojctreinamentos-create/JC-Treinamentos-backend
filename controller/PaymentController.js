@@ -1,8 +1,8 @@
 const { set, addMonths, parseISO } = require("date-fns");
 const BaseController = require("./BaseController");
 const sequelize = require("../connection/db");
-const Payment = require("../models/Payment");
-const Trainee = require("../models/Trainee");
+const {Payment , Trainee} = require("../models/");
+
 
 class PaymentController extends BaseController {
   constructor() {
@@ -44,7 +44,11 @@ class PaymentController extends BaseController {
 
   async createPaymentForAllTrainees() {
     try {
-      const trainees = await Trainee.findAll();
+      const trainees = await Trainee.findAll({
+        where:{
+          isActive: true
+        }
+      });
       if (!trainees.length) {
         console.log("Nenhum trainee encontrado");
         return;

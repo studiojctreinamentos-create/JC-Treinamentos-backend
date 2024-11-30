@@ -1,9 +1,6 @@
 const BaseController = require("./BaseController");
-const ScheduleConfig = require("../models/ScheduleConfig");
-const Config = require("../models/Config");
-const Session = require("../models/Session");
+const {ScheduleConfig, Config, Session} = require("../models/");
 const { Op } = require("sequelize");
-const ScheduleController = require("./ScheduleController");
 const { isDate, isValid } = require("date-fns");
 
 class SessionController extends BaseController {

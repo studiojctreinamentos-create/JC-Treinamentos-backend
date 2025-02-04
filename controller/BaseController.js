@@ -15,8 +15,16 @@ class BaseController {
   }
 
   async findAll(req, res) {
+
+    const options = {}
+
+    if(req.query.order){
+      const [field, direction] = req.query.order.split(',')
+      options.order = [[field, direction.toUpperCase()]]
+    }
+    
     try {
-      const data = await this.model.findAll();
+      const data = await this.model.findAll(options);
       res.status(200).json(data);
     } catch (e) {
       res.status(500).json({ error: e.message });

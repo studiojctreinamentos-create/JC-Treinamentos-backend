@@ -8,6 +8,8 @@ router.get(
   TraineeController.findWithScheduleData.bind(TraineeController)
 );
 
+router.put("/trade-status/:id", TraineeController.tradeStatus.bind(TraineeController))
+
 router.post("/", TraineeController.create.bind(TraineeController));
 router.get("/", TraineeController.findAll.bind(TraineeController));
 router.get("/:id", TraineeController.findById.bind(TraineeController));

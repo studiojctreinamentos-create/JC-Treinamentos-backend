@@ -1,13 +1,74 @@
-const { set, addMonths, parseISO } = require("date-fns");
+const { set, addMonths, parseISO, toISOString } = require("date-fns");
 const BaseController = require("./BaseController");
 const sequelize = require("../connection/db");
-const {Payment , Trainee} = require("../models/");
-
+const { Payment, Trainee, PaymentPlan } = require("../models/");
+const { Op } = require("sequelize");
 
 class PaymentController extends BaseController {
   constructor() {
     super(Payment);
   }
+
+  async findAll(req, res) {
+    try {
+      const { startDate, endDate, status, traineeName } = req.query;
+  
+      let filters = {};
+  
+      if (startDate && endDate) {
+        filters.paymentDate = {
+          [Op.between]: [new Date(startDate), new Date(endDate)],
+        };
+      } else if (startDate) {
+        filters.paymentDate = {
+          [Op.gte]: new Date(startDate),
+        };
+      } else if (endDate) {
+        filters.paymentDate = {
+          [Op.lte]: new Date(endDate),
+        };
+      }
+  
+      if (traineeName) {
+        filters['$Trainee.name$'] = {
+          [Op.like]: `%${traineeName}%`,
+        };
+      }
+  
+      if (status !== undefined) {
+        filters.status = status;
+      }
+  
+      const payments = await Payment.findAll({
+        include: [
+          {
+            model: PaymentPlan,
+            attributes: ["value", "billingInterval"],
+            paranoid: false,
+          },
+          {
+            model: Trainee,
+            attributes: ["name"],
+            where: traineeName
+              ? {
+                  name: {
+                    [Op.like]: `%${traineeName}%`,
+                  },
+                }
+              : undefined,
+          },
+        ],
+        where: filters,
+        order: [["status", "ASC"], ["paymentDate", "ASC"]],
+      });
+  
+      res.status(200).json(payments);
+    } catch (error) {
+      console.error("Erro ao buscar pagamentos:", error);
+      res.status(500).json({ error: "Erro interno do servidor." });
+    }
+  }
+  
 
   async getLastPaymentDate(traineeId) {
     try {
@@ -16,7 +77,7 @@ class PaymentController extends BaseController {
         order: [["paymentDate", "DESC"]],
       });
       return lastPayment
-        ? parseISO(lastPayment.paymentDate.toISOString())
+        ? parseISO(lastPayment.paymentDate)
         : null;
     } catch (err) {
       console.error("Erro ao obter o último pagamento:", err);
@@ -27,10 +88,17 @@ class PaymentController extends BaseController {
   async createPaymentData(trainee) {
     try {
       const lastPaymentDate = await this.getLastPaymentDate(trainee.id);
+  
+      const paymentPlan = await PaymentPlan.findByPk(trainee.paymentPlanId);
+      if (!paymentPlan || !paymentPlan.billingInterval) {
+        throw new Error("Plano de pagamento inválido ou intervalo de cobrança ausente");
+      }
+  
+      const billingInterval = paymentPlan.billingInterval;
       const paymentDate = lastPaymentDate
-        ? set(addMonths(lastPaymentDate, 1), { date: trainee.paymentDay })
+        ? set(addMonths(lastPaymentDate, billingInterval), { date: trainee.paymentDay })
         : set(new Date(), { date: trainee.paymentDay });
-
+  
       return {
         paymentDate,
         traineeId: trainee.id,
@@ -45,9 +113,9 @@ class PaymentController extends BaseController {
   async createPaymentForAllTrainees() {
     try {
       const trainees = await Trainee.findAll({
-        where:{
-          isActive: true
-        }
+        where: {
+          isActive: true,
+        },
       });
       if (!trainees.length) {
         console.log("Nenhum trainee encontrado");
@@ -66,10 +134,13 @@ class PaymentController extends BaseController {
 
   async createPaymentForTrainee(trainee, options = {}) {
     try {
-      const paymentData = await this.createPaymentData(trainee);
-      return await Payment.create(paymentData, {
-        transaction: options.transaction,
-      });
+      if(trainee.isActive){
+        const paymentData = await this.createPaymentData(trainee);
+        return await Payment.create(paymentData, {
+          transaction: options.transaction,
+        });
+      }
+      console.warn(`trainee ${trainee.name} is inactive`)
     } catch (err) {
       console.error("Erro ao criar pagamento para o trainee:", err);
       throw err;

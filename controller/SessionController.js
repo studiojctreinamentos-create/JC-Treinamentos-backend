@@ -1,11 +1,42 @@
 const BaseController = require("./BaseController");
-const {ScheduleConfig, Config, Session} = require("../models/");
-const { Op } = require("sequelize");
-const { isDate, isValid } = require("date-fns");
+const {ScheduleConfig, Config, Session, Schedule} = require("../models/");
+const { Op, Sequelize } = require("sequelize");
 
 class SessionController extends BaseController {
   constructor() {
     super(Session);
+  }
+
+  async create(req, res){
+    const transaction = await Session.sequelize.transaction()
+    try {
+      console.log(req.body)
+      const schedule = await Schedule.findOne({
+        where: {
+          date: req.body.date
+        },
+        attributes: ['id'],
+        transaction: transaction
+      })
+
+      console.log(schedule.id)
+
+      const data = {
+        scheduleId: schedule.id,
+        time: req.body.time,
+        maxTrainee: req.body.maxTrainee,
+      }
+
+      const newSession = await Session.create(data, {
+        transaction: transaction,
+      });
+
+      await transaction.commit()
+      res.status(201).json(newSession);
+    } catch (e) {
+      await transaction.rollback()
+      res.status(500).json({ error: e.message });
+    }
   }
 
   async createSessionToSchedule(dayOfWeek, scheduleId) {

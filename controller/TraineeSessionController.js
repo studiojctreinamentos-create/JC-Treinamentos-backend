@@ -9,83 +9,117 @@ class TraineeSessionController extends BaseController {
     super(TraineeSession);
   }
 
-  async createRecorrentTraineeSession() {
+  async checkTraineeSession(req, res) {
     try {
-      const configs = await TraineeSessionConfig.findAll();
-      const today = startOfDay(new Date());
-
-      const traineeSessions = [];
-
-      for (const config of configs) {
-        const date = await this.getDateForLastTraineeSession(
-          config.dayOfWeek,
-          config.time,
-          config.traineeId
-        );
-
-        const sessions = await Session.findAll({
-          include: {
-            model: Schedule,
-            where: {
-              [Op.or]: [{ date: { [Op.gt]: date || today } }, { date: null }],
-              weekDay: config.dayOfWeek,
-            },
-            attributes: [],
-          },
-          where: {
-            time: config.time,
-          },
-          attributes: ["id"],
-        });
-
-        sessions.forEach((session) => {
-          traineeSessions.push({
-            traineeId: config.traineeId,
-            sessionId: session.id,
-            isRecurring: true,
-          });
-        });
+      const { traineeId, sessionId } = req.query;
+      const traineeSession = await TraineeSession.findOne({
+        where: {
+          traineeId: traineeId,
+          sessionId: sessionId
+        }
+      });
+  
+      if (traineeSession) {
+        return res.status(200).json({ exists: true });
       }
-
-      if (traineeSessions.length > 0) {
-        await TraineeSession.bulkCreate(traineeSessions, {
-          ignoreDuplicates: true,
-        });
-      }
+      return res.status(200).json({ exists: false });
     } catch (error) {
-      console.error(`Erro ao buscar configs: ${error.message}`);
+      res.status(500).json({ error: error.message });
     }
   }
 
-  async getDateForLastTraineeSession(dayOfWeek, time, traineeId) {
+
+
+  async createRecorrentTraineeSession(options = {}) {
+    const transaction = options.transaction;
+
     try {
+        const configs = await TraineeSessionConfig.findAll({ transaction });
+        const today = startOfDay(new Date());
+
+        const traineeSessions = [];
+
+        for (const config of configs) {
+            const date = await this.getDateForLastTraineeSession(
+                config.dayOfWeek,
+                config.time,
+                config.traineeId,
+                { transaction }
+            );
+
+            const sessions = await Session.findAll({
+                include: {
+                    model: Schedule,
+                    where: {
+                        [Op.or]: [
+                            { date: { [Op.gte]: date || today } },
+                            { date: null }
+                        ],
+                        weekDay: config.dayOfWeek,
+                    },
+                    attributes: [],
+                },
+                where: {
+                    time: config.time,
+                },
+                attributes: ["id"],
+                transaction,
+            });
+
+            sessions.forEach((session) => {
+                traineeSessions.push({
+                    traineeId: config.traineeId,
+                    sessionId: session.id,
+                    isRecurring: true,
+                });
+            });
+        }
+
+        if (traineeSessions.length > 0) {
+            await TraineeSession.bulkCreate(traineeSessions, {
+                ignoreDuplicates: true,
+                transaction,
+            });
+        }
+    } catch (error) {
+        console.error(`Erro ao buscar configs: ${error.message}`);
+        throw error; 
+    }
+}
+
+async getDateForLastTraineeSession(dayOfWeek, time, traineeId, options = {}) {
+  const transaction = options.transaction;
+
+  try {
       const lastTrainee = await TraineeSession.findOne({
-        include: {
-          model: Session,
           include: {
-            model: Schedule,
-            attributes: ["date"],
-            where: {
-              weekDay: dayOfWeek,
-            },
+              model: Session,
+              include: {
+                  model: Schedule,
+                  attributes: ["date"],
+                  where: {
+                      weekDay: dayOfWeek,
+                  },
+              },
+              where: {
+                  time: time,
+              },
           },
           where: {
-            time: time,
+              traineeId: traineeId,
           },
-        },
-        where: {
-          traineeId: traineeId,
-        },
-        order: [[Session, Schedule, "date", "DESC"]],
-        attributes: [],
+          order: [[Session, Schedule, "date", "DESC"]],
+          attributes: [],
+          transaction,
       });
 
       return lastTrainee?.Session?.Schedule?.date || null;
-    } catch (error) {
+  } catch (error) {
       console.error(`Erro ao buscar última TraineeSession: ${error.message}`);
-      return null;
-    }
+      throw error;
   }
+}
+
 
   async deleteTraineeSessionByConfig(config, options = {}) {
     try {

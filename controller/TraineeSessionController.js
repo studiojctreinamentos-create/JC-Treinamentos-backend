@@ -2,7 +2,7 @@ const BaseController = require("./BaseController");
 const {TraineeSessionConfig, TraineeSession, Session, Schedule} = require("../models/");
 
 const { Op } = require("sequelize");
-const { startOfDay } = require("date-fns");
+const { startOfDay, subDays } = require("date-fns");
 
 class TraineeSessionController extends BaseController {
   constructor() {
@@ -123,14 +123,14 @@ async getDateForLastTraineeSession(dayOfWeek, time, traineeId, options = {}) {
 
   async deleteTraineeSessionByConfig(config, options = {}) {
     try {
-      const today = startOfDay(new Date());
+      const yesterday = subDays(startOfDay(new Date()), 1);
 
       const sessions = await Session.findAll({
         include: {
           model: Schedule,
           where: {
             weekDay: config.dayOfWeek,
-            date: { [Op.gt]: today },
+            date: { [Op.gt]: yesterday },
           },
           attributes: [],
         },

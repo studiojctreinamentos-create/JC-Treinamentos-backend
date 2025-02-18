@@ -115,6 +115,7 @@ class SessionController extends BaseController {
       });
     } catch (error) {
       console.error("error:" + error.message);
+      throw Error("Não foi possivel excluir as seções")
     }
   }
 }

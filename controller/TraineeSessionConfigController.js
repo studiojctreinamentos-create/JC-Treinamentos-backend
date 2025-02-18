@@ -37,6 +37,8 @@ class TraineeSessionConfigController extends BaseController {
     }
 }
 
+
+
   async delete(req, res) {
     const transaction = await TraineeSessionConfig.sequelize.transaction();
     try {
@@ -66,11 +68,12 @@ async checkTraineeSessionConfig(req, res) {
         traineeId: traineeId,
         dayOfWeek: dayOfWeek,
         time: time
-      }
+      },
+      attributes: ['id']
     })
 
     if(traineeSession){
-      return res.status(200).json({exists: true})
+      return res.status(200).json({exists: true, id: traineeSession.id})
     }
     return res.status(200).json({exists: false})
   } catch (error) {

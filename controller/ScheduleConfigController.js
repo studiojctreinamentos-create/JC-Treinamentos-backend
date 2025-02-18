@@ -11,7 +11,6 @@ class ScheduleConfigController extends BaseController {
   constructor() {
     super(ScheduleConfig);
   }
-
   async createMany(req, res) {
     try {
       const configs = req.body;
@@ -78,6 +77,25 @@ class ScheduleConfigController extends BaseController {
     } catch (error) {
       await transaction.rollback();
       res.status(500).json({ message: error.message });
+    }
+  }
+
+  async findIdByDayAndTime (req, res) {
+    try {
+      const {day, time} = req.query
+
+      const schedule = await ScheduleConfig.findOne({
+        where: {
+          day: day,
+          time: time
+        },
+        attributes: ['id']
+      })
+
+      res.status(200).json({id: schedule.id})
+
+    } catch (error) {
+      res.status(500).json({error: error.message})
     }
   }
 

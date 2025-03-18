@@ -27,9 +27,6 @@ class TraineeSessionController extends BaseController {
       res.status(500).json({ error: error.message });
     }
   }
-
-
-
   async createRecorrentTraineeSession(options = {}) {
     const transaction = options.transaction;
 
@@ -65,6 +62,8 @@ class TraineeSessionController extends BaseController {
                 attributes: ["id"],
                 transaction,
             });
+
+            console.warn(sessions)
 
             sessions.forEach((session) => {
                 traineeSessions.push({

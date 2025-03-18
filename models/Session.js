@@ -10,7 +10,7 @@ module.exports = (sequelize) => {
         allowNull: false,
       },
       time: {
-        type: DataTypes.STRING,
+        type: DataTypes.TIME,
         allowNull: false,
       },
       scheduleId: {

@@ -6,7 +6,9 @@ const {
   addDays,
   format,
   differenceInCalendarDays,
+  subDays,
   startOfDay,
+  subHours
 } = require("date-fns");
 const { Op } = require("sequelize");
 
@@ -103,9 +105,123 @@ class ScheduleController extends BaseController {
     }
   }
 
+  async findNearSessions(req, res) {
+    try {
+      const today = (new Date());
+      const now = format(today, 'HH:mm:ss');
+      const past = format(subHours(today, 1), 'HH:mm:ss');
+    
+      const actualSession = await Schedule.findOne({
+        include: [
+          {
+            model: Session,
+            attributes: ['time'],
+            include: [
+              {
+                model: TraineeSession,
+                attributes: ['id'],
+                include: [
+                  {
+                    model: Trainee,
+                    attributes: ['id', 'name'],
+                  },
+                ],
+              },
+            ],
+            where: {
+              time: { 
+                [Op.or]:[ 
+                  {[Op.between]: [past, now] },
+                  {[Op.gte]: now},
+              ]},
+            },
+            limit: 1,
+          },
+        ],
+        attributes: ['id'],
+        where: {
+          date: { [Op.gte]: today },
+        },
+        logging: console.log,
+      });
+
+      const lastSession = await Schedule.findOne({
+        include: [
+          {
+            model: Session,
+            attributes: ['time'],
+            include: [
+              {
+                model: TraineeSession,
+                attributes: ['id'],
+                include: [
+                  {
+                    model: Trainee,
+                    attributes: ['id', 'name'],
+                  },
+                ],
+              },
+            ],
+            where: {
+              time: { [Op.lt]: past },
+            },
+            order: [['time', 'DESC']],
+            limit: 1,
+          },
+        ],
+        attributes: ['id'],
+        where: {
+          date: today ,
+        },
+        logging: console.log,
+      });
+
+      const nextSession = actualSession ? await Schedule.findOne({
+        include: [
+          {
+            model: Session,
+            attributes: ['time'],
+            include: [
+              {
+                model: TraineeSession,
+                attributes: ['id'],
+                include: [
+                  {
+                    model: Trainee,
+                    attributes: ['id', 'name'],
+                  },
+                ],
+              },
+            ],
+            where: {
+              time: { [Op.gt]: now },
+            },
+            limit: 1,
+          },
+        ],
+        attributes: ['id'],
+        where: {
+          date: today,
+        },
+        logging: console.log,
+      }): null;
+
+      const sessions = {
+        actualSession: actualSession.Sessions[0] || {},
+        lastSession: lastSession.Sessions[0] || {},
+        nextSession:  nextSession.Sessions[0] || {},
+      }
+    
+      return res.status(200).json(sessions);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: error.message });
+    }
+  }
+  
   async ensure90DaysOfSchedules() {
     try {
-      const today = new Date();
+      const today = subDays(new Date(), 1);
       const lastSchedule = await Schedule.findOne({
         order: [["date", "DESC"]],
       });

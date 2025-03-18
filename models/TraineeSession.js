@@ -33,6 +33,12 @@ module.exports = (sequelize) => {
     {
       sequelize,
       modelName: "TraineeSession",
+      indexes: [
+        {
+          unique: true,
+          fields: ["traineeId", "sessionId"],
+        },
+      ],
     }
   );
 

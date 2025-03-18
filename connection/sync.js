@@ -20,7 +20,7 @@ async function syncDatabase() {
   try {
     await sequelize.sync({force: false});
     await ConfigController.createDefaultConfigs.call(ConfigController);
-    await ScheduleController.ensure90DaysOfSchedules();
+    await ScheduleController.ensure90DaysOfSchedules.call(ScheduleController);
     console.log('Banco de dados sincronizado.');
   } catch (error) {
     console.error('Erro ao sincronizar banco de dados:', error);

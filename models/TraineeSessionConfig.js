@@ -6,7 +6,7 @@ module.exports = (sequelize) => {
   TraineeSessionConfig.init(
     {
       time: {
-        type: DataTypes.STRING,
+        type: DataTypes.TIME,
         allowNull: false,
       },
       dayOfWeek: {

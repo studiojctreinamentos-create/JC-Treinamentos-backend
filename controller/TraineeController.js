@@ -2,7 +2,9 @@ const BaseController = require("./BaseController");
 const { Trainee, TraineeSessionConfig, PaymentPlan } = require("../models/");
 const paymentController = require("./PaymentController");
 const sequelize = require("../connection/db");
-const { Op } = require('sequelize');
+const { Op, literal } = require('sequelize');
+const {format} = require('date-fns');
+
 
 class TraineeController extends BaseController {
   constructor() {
@@ -36,6 +38,24 @@ class TraineeController extends BaseController {
     } catch (e) {
       await transaction.rollback();
       res.status(500).json({ message: e.message });
+    }
+  }
+
+  async findByBirthDate(req, res){
+    try{
+      const today = new Date()
+      const actualMonth = format(today, 'MM');
+
+      const trainees = await Trainee.findAll({
+        where: literal(`MONTH(birthDate) = ${actualMonth}`),
+        attributes: ['name', 'birthDate', 'age', 'isActive'],
+        order: ['birthDate']
+      })
+
+      res.status(200).json(trainees)
+
+    }catch(e){
+      res.status(500).json({message: e.message})
     }
   }
 
@@ -111,6 +131,24 @@ class TraineeController extends BaseController {
   async checkUniqueTrainee(trainee) {
     const existingTrainee = await Trainee.findOne({ where: { name: trainee.name } });
     return existingTrainee !== null;
+  }
+
+  async countTrainee(req, res){
+    try { 
+      const totalTraineesActived = await Trainee.count({where: {isActive: true} })
+      const totalTraineesDesactived = await Trainee.count({where: {isActive: false} })
+      const totalTrainees = totalTraineesActived + totalTraineesDesactived
+
+      return res.status(200).json({
+        totalTrainees: totalTrainees,
+        totalTraineesActived: totalTraineesActived,
+        totalTraineesDesactived: totalTraineesDesactived
+      })
+
+    } catch (error) {
+      console.error("Erro ao contar trainees:", error);
+      res.status(500).json({ error: "Erro interno do servidor." });
+    }
   }
 }
 

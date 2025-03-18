@@ -2,6 +2,8 @@ const express = require("express");
 const router = express.Router();
 const Schedule = require("../controller/ScheduleController");
 
+router.get("/infos", Schedule.findNearSessions.bind(Schedule))
+
 router.post("/", Schedule.create.bind(Schedule));
 router.get("/", Schedule.findAll.bind(Schedule));
 router.get("/:id", Schedule.findById.bind(Schedule));

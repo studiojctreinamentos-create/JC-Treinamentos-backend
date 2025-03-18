@@ -18,7 +18,7 @@ module.exports = (sequelize) => {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-          model: "Trainees",  // Certifique-se de que o modelo Trainee esteja disponível
+          model: "Trainees", 
           key: "id",
         },
       },
@@ -26,7 +26,7 @@ module.exports = (sequelize) => {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-          model: "PaymentPlans",  // Certifique-se de que o modelo PaymentPlan esteja disponível
+          model: "PaymentPlans", 
           key: "id",
         },
       },

@@ -1,8 +1,9 @@
-const { set, addMonths, parseISO, toISOString } = require("date-fns");
+const { set, addMonths, parseISO, toISOString, format } = require("date-fns");
 const BaseController = require("./BaseController");
 const sequelize = require("../connection/db");
 const { Payment, Trainee, PaymentPlan } = require("../models/");
-const { Op } = require("sequelize");
+const { Op, literal, col, fn} = require("sequelize");
+const { sign } = require("jsonwebtoken");
 
 class PaymentController extends BaseController {
   constructor() {
@@ -68,7 +69,95 @@ class PaymentController extends BaseController {
       res.status(500).json({ error: "Erro interno do servidor." });
     }
   }
+
+  async findPaymentInfos(req, res) {
+    try {
+      const today = new Date();
+      const actualMonth = format(today, 'MM');
   
+      const [sumPayed, sumNotPayed, sumLastMonth] = await Promise.all([
+        Payment.findOne({
+          attributes: [[fn('SUM', col('PaymentPlan.value')), 'sum']],
+          include: [{ model: PaymentPlan, attributes: [] }],
+          where: {
+            status: true,
+            [Op.and]: literal(`MONTH(paymentDate) = ${actualMonth}`)
+          },
+          raw: true
+        }),
+        Payment.findOne({
+          attributes: [[fn('SUM', col('PaymentPlan.value')), 'sum']],
+          include: [{ model: PaymentPlan, attributes: [] }],
+          where: {
+            status: false,
+            [Op.and]: literal(`MONTH(paymentDate) <= ${actualMonth}`)
+          },
+          raw: true
+        }),
+        Payment.findOne({
+          attributes: [[fn('SUM', col('PaymentPlan.value')), 'sum']],
+          include: [{model: PaymentPlan, attributes: []}],
+          where: {
+            status: true,
+            [Op.and]: literal(`MONTH(paymentDate) = ${(parseInt(actualMonth) - 1)}`)
+          },
+          raw: true
+        })
+      ]);
+  
+      const sumPayedValue = sumPayed?.sum || 0;
+      const sumNotPayedValue = sumNotPayed?.sum || 0;
+      const sumLastMonthValue = sumLastMonth?.sum || 0;
+      const totalSum = sumPayedValue + sumNotPayedValue;
+  
+      return res.status(200).json({
+        payedValue: sumPayedValue,
+        notPayedValue: sumNotPayedValue,
+        totalValue: totalSum,
+        lastMonthValue: sumLastMonthValue
+      });
+  
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: "Erro ao buscar informações de pagamento." });
+    }
+  }
+  
+  async updateStatusToTrue(req, res) {
+    const transaction = await Payment.sequelize.transaction();
+
+    try {
+      const id = req.params.id;
+      const [updatedRowCount] = await Payment.update(
+        { status: true },
+        { where: { id }, transaction }
+      );
+
+      if (updatedRowCount === 0) {
+        await transaction.rollback();
+        return res.status(404).json({ message: "Pagamento não encontrado" });
+      }
+
+      const updatedPayment = await Payment.findByPk(id, { transaction });
+      if (!updatedPayment) {
+        await transaction.rollback();
+        return res
+          .status(404)
+          .json({ message: "Pagamento não encontrado após atualização" });
+      }
+
+      const traineeId = updatedPayment.traineeId;
+
+      await this.createPaymentByTraineeId(traineeId, { transaction });
+
+      await transaction.commit();
+
+      res.status(200).json({ message: "Status atualizado com sucesso" });
+    } catch (e) {
+      await transaction.rollback();
+      res.status(500).json({ message: e.message });
+    }
+  }
 
   async getLastPaymentDate(traineeId) {
     try {
@@ -160,41 +249,7 @@ class PaymentController extends BaseController {
     }
   }
 
-  async updateStatusToTrue(req, res) {
-    const transaction = await Payment.sequelize.transaction();
 
-    try {
-      const id = req.params.id;
-      const [updatedRowCount] = await Payment.update(
-        { status: true },
-        { where: { id }, transaction }
-      );
-
-      if (updatedRowCount === 0) {
-        await transaction.rollback();
-        return res.status(404).json({ message: "Pagamento não encontrado" });
-      }
-
-      const updatedPayment = await Payment.findByPk(id, { transaction });
-      if (!updatedPayment) {
-        await transaction.rollback();
-        return res
-          .status(404)
-          .json({ message: "Pagamento não encontrado após atualização" });
-      }
-
-      const traineeId = updatedPayment.traineeId;
-
-      await this.createPaymentByTraineeId(traineeId, { transaction });
-
-      await transaction.commit();
-
-      res.status(200).json({ message: "Status atualizado com sucesso" });
-    } catch (e) {
-      await transaction.rollback();
-      res.status(500).json({ message: e.message });
-    }
-  }
 }
 
 module.exports = new PaymentController();

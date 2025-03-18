@@ -2,10 +2,20 @@ const express = require("express");
 const router = express.Router();
 const TraineeController = require("../controller/TraineeController");
 
+router.get(
+  "/infos",
+  TraineeController.countTrainee.bind(TraineeController)
+);
+
 
 router.get(
   "/schedule-data",
   TraineeController.findWithScheduleData.bind(TraineeController)
+);
+
+router.get(
+  "/find-birthdays",
+  TraineeController.findByBirthDate.bind(TraineeController)
 );
 
 router.put("/trade-status/:id", TraineeController.tradeStatus.bind(TraineeController))

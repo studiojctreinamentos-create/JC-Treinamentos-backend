@@ -12,5 +12,22 @@
   },
   "scripts": {
     "start": "node index.js"
-  }
+  },
+  "name": "jc-backend",
+  "version": "1.0.0",
+  "description": "When you're ready, start your application by running: `docker compose up --build`.",
+  "main": "index.js",
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GabrielVilasboa/jc-treinamentos-backend.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/GabrielVilasboa/jc-treinamentos-backend/issues"
+  },
+  "homepage": "https://github.com/GabrielVilasboa/jc-treinamentos-backend#readme"
 }

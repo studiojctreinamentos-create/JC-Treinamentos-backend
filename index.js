@@ -21,7 +21,7 @@ async function startServer() {
   try {
     await syncDatabase();
 
-    app.listen(port, () => {
+    app.listen(port, '0.0.0.0', () => {
       console.log("Servidor rodando na porta:" + port);
     });
   } catch (error) {

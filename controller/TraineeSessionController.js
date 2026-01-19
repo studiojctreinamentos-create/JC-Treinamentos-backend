@@ -27,63 +27,56 @@ class TraineeSessionController extends BaseController {
       res.status(500).json({ error: error.message });
     }
   }
-  async createRecorrentTraineeSession(options = {}) {
-    const transaction = options.transaction;
+  async createRecorrentTraineeSession() {
+  try {
+    const configs = await TraineeSessionConfig.findAll();
+    const today = startOfDay(new Date());
 
-    try {
-        const configs = await TraineeSessionConfig.findAll({ transaction });
-        const today = startOfDay(new Date());
+    const traineeSessions = [];
 
-        const traineeSessions = [];
+    for (const config of configs) {
+      const lastDate = await this.getDateForLastTraineeSession(
+        config.dayOfWeek,
+        config.time,
+        config.traineeId
+      );
 
-        for (const config of configs) {
-            const date = await this.getDateForLastTraineeSession(
-                config.dayOfWeek,
-                config.time,
-                config.traineeId,
-                { transaction }
-            );
+      const sessions = await Session.findAll({
+        include: {
+          model: Schedule,
+          where: {
+            weekDay: config.dayOfWeek,
+            date: {
+              [Op.gte]: lastDate || today,
+            },
+          },
+          attributes: [],
+        },
+        where: {
+          time: config.time,
+        },
+        attributes: ["id"],
+      });
 
-            const sessions = await Session.findAll({
-                include: {
-                    model: Schedule,
-                    where: {
-                        [Op.or]: [
-                            { date: { [Op.gte]: date || today } },
-                            { date: null }
-                        ],
-                        weekDay: config.dayOfWeek,
-                    },
-                    attributes: [],
-                },
-                where: {
-                    time: config.time,
-                },
-                attributes: ["id"],
-                transaction,
-            });
-
-            console.warn(sessions)
-
-            sessions.forEach((session) => {
-                traineeSessions.push({
-                    traineeId: config.traineeId,
-                    sessionId: session.id,
-                    isRecurring: true,
-                });
-            });
-        }
-
-        if (traineeSessions.length > 0) {
-            await TraineeSession.bulkCreate(traineeSessions, {
-                ignoreDuplicates: true,
-                transaction,
-            });
-        }
-    } catch (error) {
-        console.error(`Erro ao buscar configs: ${error.message}`);
-        throw error; 
+      for (const session of sessions) {
+        traineeSessions.push({
+          traineeId: config.traineeId,
+          sessionId: session.id,
+          isRecurring: true,
+        });
+      }
     }
+
+    if (traineeSessions.length === 0) return;
+    console.log(traineeSessions)
+    await TraineeSession.bulkCreate(traineeSessions, {
+      ignoreDuplicates: true,
+    });
+
+  } catch (error) {
+    console.error("Erro ao criar sessões recorrentes:", error);
+    throw error;
+  }
 }
 
 async getDateForLastTraineeSession(dayOfWeek, time, traineeId, options = {}) {
